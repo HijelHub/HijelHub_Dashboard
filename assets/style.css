@@ -271,8 +271,8 @@ body {
 .tab-content {
   max-height: 240px;
   overflow-y: auto;
-  scrollbar-gutter: stable;
-  padding-right: 6px;
+  margin-right: -18px;
+  padding-right: 18px;
 }
 
 .ref-table { width: 100%; font-size: 13px; border-collapse: collapse; }
@@ -287,7 +287,7 @@ body {
   z-index: 1;
 }
 
-.ref-table thead th:last-child { text-align: right; padding-right: 4px; }
+.ref-table thead th:last-child { text-align: right; }
 
 .ref-table td {
   padding: 5px 0; border-bottom: 1px solid var(--border);
@@ -297,7 +297,6 @@ body {
 .ref-table td:last-child {
   text-align: right; font-family: var(--font-m);
   font-size: 12px; color: var(--tx); font-weight: 500;
-  padding-right: 4px;
 }
 
 .ref-table tbody tr:last-child td { border-bottom: none; }
