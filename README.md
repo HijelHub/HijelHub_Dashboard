@@ -2,20 +2,25 @@
 
 A self-hosted, static-site dashboard that aggregates GitHub traffic statistics (views, clones, referrers) and release download counts across multiple repositories into a single unified view.
 
+<br> 
+
 > **⚠️ IMPORTANT: Always fork from the original repository at [github.com/HijelHub/HijelHub_Dashboard](https://github.com/HijelHub/HijelHub_Dashboard) to ensure you have the unmodified, verified version of the workflow and scripts. Do not fork from other users' forks, as their versions may contain modifications that could compromise your security.**
+
+<br> 
 
 ## Why?
 
 - GitHub's built-in traffic data **expires after 14 days**
 - There is **no native way** to view traffic across multiple repos on a single page
+- Other dashboards have no data privacy options (unless paid)
 - Existing solutions require databases, servers, or paid services
 
-This dashboard solves both problems using only GitHub's free tier: Actions, Pages, and the REST API.
+This dashboard solves all these problems using only GitHub's free tier: Actions, Pages, and the REST API.
 
 ## Features
 
 - 📊 **Historical data preservation** — daily cron workflow accumulates traffic data beyond the 14-day API limit
-- 📈 **Multi-repo overview** — view all your repos' traffic on one page
+- 📈 **Multi-repo overview** — view all your repos' traffic on one page, any repo you have write access to.
 - 🔒 **Optional AES-256-GCM encryption** — encrypt traffic data at rest for public repos
 - 🌓 **Light/dark mode** — toggle with persistent preference
 - 📱 **Responsive** — works on desktop, tablet, and mobile
@@ -124,7 +129,7 @@ Dashboard UI
 
 ## Security
 
-This project was designed with security as a primary concern:
+This project was designed with security in mind:
 
 | Concern | Mitigation |
 |---|---|
@@ -170,6 +175,14 @@ Removing the `ENCRYPT_KEY` secret means the workflow can no longer decrypt exist
 └── LICENSE                                 # Apache 2.0
 ```
 
-## License
+## Support this Project
+
+If you found this library useful, your support would mean a lot!
+
+<sub><img width="20" height="20" src="https://raw.githubusercontent.com/HijelHub/GitStrap_SVG_Icons/b674246b8f46d8bc2c75f3cf5cf395a370b86ae2/icons/purple/stripe.svg"></sub>  [Securely Donate with Stripe](https://buy.stripe.com/fZu8wQdt01Oi5wWdKycMM01)
+
+If you are intending to use this library commercially, your support is **expected**.
+
+##
 
 Copyright © 2026 Hijel. Licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
