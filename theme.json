@@ -2,8 +2,8 @@
   "title": "Traffic Dashboard",
   "logo": "",
   "defaultMode": "dark",
-  "defaultChartRange": 30,
-  "dateFormat": "DMY",
+  "defaultChartRange": 5,
+  "dateFormat": "YMD",
   "fonts": {
     "heading": "DM Sans",
     "body": "DM Sans",
