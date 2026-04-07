@@ -276,6 +276,29 @@ body {
   position: relative;
   max-height: 220px;
   overflow-y: auto;
+
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg3) transparent;
+}
+
+/* Webkit (Chrome, Safari, Edge) scrollbar styling */
+.ref-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ref-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.ref-scroll-container::-webkit-scrollbar-thumb {
+  background-color: var(--bg3);
+  border-radius: 3px;
+}
+
+.ref-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--tx3);
 }
 
 .ref-table {
@@ -294,8 +317,6 @@ body {
   z-index: 1;
 }
 
-.ref-table thead th:last-child { text-align: right; }
-
 .ref-table td {
   padding: 5px 0; border-bottom: 1px solid var(--border);
   color: var(--tx2); font-size: 13px;
@@ -304,7 +325,10 @@ body {
 .ref-table td:last-child {
   text-align: right; font-family: var(--font-m);
   font-size: 12px; color: var(--tx); font-weight: 500;
+  padding-right: 10px;
 }
+
+.ref-table thead th:last-child { text-align: right; padding-right: 10px; }
 
 .ref-table tbody tr:last-child td { border-bottom: none; }
 

@@ -350,7 +350,7 @@ const App = (() => {
           for (const r of releases) {
             rows += `<tr><td>${r.tag}</td><td>${fmt(r.downloads)}</td></tr>`;
           }
-          container.innerHTML = `<div class="ref-scroll-container"><table class="table ref-table"><thead><tr><th>Release</th><th>Downloads</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+          container.innerHTML = `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Release</th><th>Downloads</th></tr></thead><tbody>${rows}</tbody></table></div>`;
         }
       });
     }
@@ -364,7 +364,7 @@ const App = (() => {
     for (const r of referrers) {
       rows += `<tr><td>${r.referrer}</td><td>${fmt(r.count)}</td></tr>`;
     }
-    return `<div class="ref-scroll-container"><table class="table ref-table"><thead><tr><th>Site</th><th>Visits</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Site</th><th>Visits</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   // ── Charts ───────────────────────────────────────────────────────────────
