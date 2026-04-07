@@ -76,7 +76,7 @@ You can track any repo you have write access to, including repos in organization
 3. Set **Branch** to `main` and folder to `/ (root)`
 4. Click **Save**
 
-Your dashboard will be live at `https://your-username.github.io/HijelHub_Dashboard/`
+Your dashboard will be live at `https://your-username.github.io/HijelHub_Dashboard/` after a few minutes.
 
 ### 6. Run the workflow
 
@@ -87,7 +87,7 @@ The workflow runs automatically every day at 23:00 UTC. To trigger it immediatel
 
 ### 7. (Optional) Enable encryption
 
-If your repository is public and you want to encrypt traffic data:
+If your want your traffic data to remain private:
 
 1. Go to **Settings** → **Secrets and variables** → **Actions**
 2. Add a new secret named `ENCRYPT_KEY` with any password/passphrase
@@ -177,11 +177,11 @@ Removing the `ENCRYPT_KEY` secret means the workflow can no longer decrypt exist
 
 ## Support this Project
 
-If you found this library useful, your support would mean a lot!
+If you found this dashboard useful, your support would mean a lot!
 
 <sub><img width="20" height="20" src="https://raw.githubusercontent.com/HijelHub/GitStrap_SVG_Icons/b674246b8f46d8bc2c75f3cf5cf395a370b86ae2/icons/purple/stripe.svg"></sub>  [Securely Donate with Stripe](https://buy.stripe.com/fZu8wQdt01Oi5wWdKycMM01)
 
-If you are intending to use this library commercially, your support is **expected**.
+If you are intending to use this dashboard commercially, your support is **expected**.
 
 ##
 
