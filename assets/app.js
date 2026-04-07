@@ -28,25 +28,73 @@ const App = (() => {
     return n != null ? n.toLocaleString() : "0";
   }
 
+  /**
+   * Formats a date string (YYYY-MM-DD) according to the theme dateFormat.
+   * dateFormat is any arrangement of D, M, Y (e.g. "DMY", "MDY", "YMD").
+   * Produces DD/MM/YY, MM/DD/YY, YY/MM/DD etc. with "/" separator.
+   */
   function dateLabel(dateStr) {
     const d = new Date(dateStr + "T00:00:00");
     const dd = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yy = String(d.getFullYear()).slice(2);
-    return `${dd}/${mm}/${yy}`;
+
+    const format = parseDateFormat(theme.dateFormat);
+    const parts = format.map((c) => {
+      if (c === "D") return dd;
+      if (c === "M") return mm;
+      if (c === "Y") return yy;
+      return dd;
+    });
+    return parts.join("/");
   }
 
-  function rangeStartDate(range) {
-    const now = new Date();
-    const map = {
-      "1month": 30,
-      "3months": 90,
-      "6months": 180,
-      "12months": 365,
-    };
-    const days = map[range];
-    if (!days) return null; // "all"
-    const d = new Date(now);
+  /**
+   * Formats a date string (YYYY-MM-DD) for CSV output.
+   * Uses the same dateFormat order but with full 4-digit year: DD/MM/YYYY etc.
+   */
+  function dateLabelCSV(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = String(d.getFullYear());
+
+    const format = parseDateFormat(theme.dateFormat);
+    const parts = format.map((c) => {
+      if (c === "D") return dd;
+      if (c === "M") return mm;
+      if (c === "Y") return yyyy;
+      return dd;
+    });
+    return parts.join("/");
+  }
+
+  /**
+   * Parses a dateFormat string (e.g. "DMY", "MDY", "YMD") into an array of
+   * component letters [D, M, Y]. Falls back to ["D","M","Y"] if invalid.
+   */
+  function parseDateFormat(fmt) {
+    if (!fmt || typeof fmt !== "string") return ["D", "M", "Y"];
+    const upper = fmt.toUpperCase().replace(/[^DMY]/g, "");
+    const chars = [];
+    for (const c of upper) {
+      if ((c === "D" || c === "M" || c === "Y") && !chars.includes(c)) {
+        chars.push(c);
+      }
+    }
+    if (chars.length !== 3) return ["D", "M", "Y"];
+    return chars;
+  }
+
+  /**
+   * Returns the start date string for the chart viewport.
+   * defaultChartRange is a number of days (e.g. 30, 90, 180, 365).
+   * 0 means show all data.
+   */
+  function rangeStartDate(rangeDays) {
+    const days = typeof rangeDays === "number" ? rangeDays : parseInt(rangeDays, 10);
+    if (!days || days <= 0) return null; // 0 or invalid = show all
+    const d = new Date();
     d.setDate(d.getDate() - days);
     return d.toISOString().slice(0, 10);
   }
@@ -260,7 +308,7 @@ const App = (() => {
       <div class="repo-section">
         <div class="repo-header">
           <div class="repo-avatar">
-            <img src="https://github.com/${owner}.png?size=60" alt="" onerror="this.style.display='none'; this.parentElement.textContent='${ownerInitial}'">
+            <img src="https://avatars.githubusercontent.com/${owner}?s=60" alt="" onerror="this.style.display='none'; this.parentElement.textContent='${ownerInitial}'">
           </div>
           <a class="repo-name" href="https://github.com/${repoFullName}" target="_blank" rel="noopener">
             <span class="owner">${owner} /</span> ${repo}
@@ -377,8 +425,8 @@ const App = (() => {
     const totals = dataPoints.map((d) => d.count);
     const uniques = dataPoints.map((d) => d.uniques);
 
-    // Compute initial viewport
-    const defaultRange = theme.defaultChartRange || "1month";
+    // Compute initial viewport using days-based range
+    const defaultRange = theme.defaultChartRange;
     const minDate = rangeStartDate(defaultRange);
     let minIdx = 0;
     if (minDate && dataPoints.length > 0) {
@@ -557,7 +605,7 @@ const App = (() => {
     let csv = "date,views,unique_views,clones,unique_clones\n";
     for (const date of sortedDates) {
       const d = dateMap.get(date);
-      csv += `${date},${d.views},${d.unique_views},${d.clones},${d.unique_clones}\n`;
+      csv += `${dateLabelCSV(date)},${d.views},${d.unique_views},${d.clones},${d.unique_clones}\n`;
     }
 
     // Add referrers section
