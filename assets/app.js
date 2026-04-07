@@ -92,7 +92,7 @@ const App = (() => {
         logoContainer.innerHTML = `<img src="${theme.logo}" alt="Logo" onerror="this.parentElement.style.display='none'">`;
         logoContainer.className = "header-logo";
       } else {
-        logoContainer.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><path d="M2 4L8 2L14 4V10L8 14L2 10V4Z" stroke="white" stroke-width="1.5" fill="none"/><path d="M8 2V14M2 4L14 4M2 10L14 10" stroke="white" stroke-width="0.7" opacity="0.5"/></svg>`;
+        logoContainer.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><rect x="2.5" y="9" width="3" height="5" rx="0.8" fill="white" opacity="0.55"/><rect x="6.5" y="5.5" width="3" height="8.5" rx="0.8" fill="white" opacity="0.75"/><rect x="10.5" y="2.5" width="3" height="11.5" rx="0.8" fill="white"/></svg>`;
         logoContainer.className = "header-logo-default";
       }
     }
