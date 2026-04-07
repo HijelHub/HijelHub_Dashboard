@@ -270,10 +270,10 @@ body {
 
 .tab-content {
   flex: 1; min-height: 0;
-  display: flex; flex-direction: column;
 }
 
-.ref-table-wrap {
+.ref-scroll-container {
+  position: relative;
   max-height: 220px;
   overflow-y: auto;
 }
@@ -287,9 +287,10 @@ body {
   font-size: 10px; font-family: var(--font-m);
   text-transform: uppercase; letter-spacing: 0.5px;
   color: var(--tx3); font-weight: 500;
-  padding: 0 0 8px; border-bottom: 1px solid var(--border);
+  padding: 4px 0 8px; border-bottom: 1px solid var(--border);
   text-align: left;
-  position: sticky; top: 0; background: var(--bg);
+  position: sticky; top: 0;
+  background-color: var(--bg);
   z-index: 1;
 }
 
