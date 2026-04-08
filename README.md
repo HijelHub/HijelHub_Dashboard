@@ -4,7 +4,8 @@ A self-hosted, static-site dashboard that aggregates GitHub traffic statistics (
 
 <br> 
 
-> **⚠️ IMPORTANT: Always fork from the original repository at [github.com/HijelHub/HijelHub_Dashboard](https://github.com/HijelHub/HijelHub_Dashboard) to ensure you have the unmodified, verified version of the workflow and scripts. Do not fork from other users' forks, as their versions may contain modifications that could compromise your security.**
+> [!IMPORTANT]
+> Always fork from the original repository at [github.com/HijelHub/HijelHub_Dashboard](https://github.com/HijelHub/HijelHub_Dashboard) to ensure you have the unmodified, verified version of the workflow and scripts. Do not fork from other users' forks, as their versions may contain modifications that could compromise your security.**
 
 <br>
 
@@ -48,6 +49,7 @@ Click **Fork** on the [original repository](https://github.com/HijelHub/HijelHub
    - **Metadata**: Read-only
 5. Click **Generate token** and copy the value
 
+> [!NOTE]
 > **Why Administration: Read?** GitHub gates the traffic API behind administrative access. Despite the name, read-only administration cannot modify any repository settings.
 
 ### 3. Add the token as a secret
@@ -94,7 +96,8 @@ GitHub automatically disables scheduled workflows on forked repositories. You ne
 
 After this, the workflow will run automatically every day at 23:00 UTC. Your first run may take a minute — check the Actions tab to confirm it completed successfully.
 
-> **Changing the schedule:** The default 23:00 UTC time captures a near-complete day of traffic data before the UTC midnight rollover. To change it, edit the `cron` line in `.github/workflows/collect-traffic.yml`. For example, `"0 5 * * *"` runs at 05:00 UTC daily. Use [crontab.guru](https://crontab.guru) to build your expression.
+> [!NOTE]
+> **Changing the schedule:** The default 23:00 UTC cron time can be changed if you wish, edit the `cron` line in `.github/workflows/collect-traffic.yml`. For example, `"0 5 * * *"` runs at 05:00 UTC daily. Use [crontab.guru](https://crontab.guru) to build your expression.
 
 ### 7. (Optional) Enable encryption
 
