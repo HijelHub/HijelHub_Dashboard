@@ -18,8 +18,8 @@ const path = require("path");
 
 const TOKEN = process.env.GHTRAFFIC_TOKEN;
 if (!TOKEN) {
-  console.error("Error: GHTRAFFIC_TOKEN environment variable is not set.");
-  process.exit(1);
+  console.log("No GHTRAFFIC_TOKEN set — skipping data collection.");
+  process.exit(0);
 }
 
 const CONFIG_PATH = path.join(__dirname, "..", "config.json");
