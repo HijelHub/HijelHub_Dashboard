@@ -5,7 +5,7 @@ A self-hosted, static-site dashboard that aggregates GitHub traffic statistics (
 <br> 
 
 > [!IMPORTANT]
-> Always fork from the original repository at [github.com/HijelHub/HijelHub_Dashboard](https://github.com/HijelHub/HijelHub_Dashboard) to ensure you have the unmodified, verified version of the workflow and scripts. Do not fork from other users' forks, as their versions may contain modifications that could compromise your security.**
+> Always fork from the original repository at [github.com/HijelHub/HijelHub_Dashboard](https://github.com/HijelHub/HijelHub_Dashboard) to ensure you have the unmodified, verified version of the workflow and scripts. Do not fork from other users' forks, as their versions may contain modifications that could compromise your security.
 
 <br>
 
