@@ -28,6 +28,13 @@ const App = (() => {
     return n != null ? n.toLocaleString() : "0";
   }
 
+  /** Escapes a string for safe insertion into HTML */
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
   /**
    * Formats a date string (YYYY-MM-DD) according to the theme dateFormat.
    * dateFormat is any arrangement of D, M, Y (e.g. "DMY", "MDY", "YMD").
@@ -50,32 +57,12 @@ const App = (() => {
   }
 
   /**
-   * Formats a date string (YYYY-MM-DD) for CSV output.
-   * Uses the same dateFormat order but with full 4-digit year: DD/MM/YYYY etc.
-   */
-  function dateLabelCSV(dateStr) {
-    const d = new Date(dateStr + "T00:00:00");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = String(d.getFullYear());
-
-    const format = parseDateFormat(theme.dateFormat);
-    const parts = format.map((c) => {
-      if (c === "D") return dd;
-      if (c === "M") return mm;
-      if (c === "Y") return yyyy;
-      return dd;
-    });
-    return parts.join("/");
-  }
-
-  /**
    * Parses a dateFormat string (e.g. "DMY", "MDY", "YMD") into an array of
    * component letters [D, M, Y]. Falls back to ["D","M","Y"] if invalid.
    */
-  function parseDateFormat(fmt) {
-    if (!fmt || typeof fmt !== "string") return ["D", "M", "Y"];
-    const upper = fmt.toUpperCase().replace(/[^DMY]/g, "");
+  function parseDateFormat(formatStr) {
+    if (!formatStr || typeof formatStr !== "string") return ["D", "M", "Y"];
+    const upper = formatStr.toUpperCase().replace(/[^DMY]/g, "");
     const chars = [];
     for (const c of upper) {
       if ((c === "D" || c === "M" || c === "Y") && !chars.includes(c)) {
@@ -133,11 +120,16 @@ const App = (() => {
     const titleEl = document.getElementById("header-title");
     if (titleEl) titleEl.textContent = title;
 
-    // Logo
+    // Logo — use DOM API to avoid innerHTML XSS
     const logoContainer = document.getElementById("header-logo");
     if (logoContainer) {
       if (theme.logo) {
-        logoContainer.innerHTML = `<img src="${theme.logo}" alt="Logo" onerror="this.parentElement.style.display='none'">`;
+        logoContainer.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = theme.logo;
+        img.alt = "Logo";
+        img.onerror = () => { logoContainer.style.display = "none"; };
+        logoContainer.appendChild(img);
         logoContainer.className = "header-logo";
       } else {
         logoContainer.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><rect x="2.5" y="9" width="3" height="5" rx="0.8" fill="white" opacity="0.55"/><rect x="6.5" y="5.5" width="3" height="8.5" rx="0.8" fill="white" opacity="0.75"/><rect x="10.5" y="2.5" width="3" height="11.5" rx="0.8" fill="white"/></svg>`;
@@ -157,13 +149,16 @@ const App = (() => {
     if (palette) {
       document.documentElement.style.setProperty("--bg", palette.bg);
       document.documentElement.style.setProperty("--bg2", palette.bgSecondary);
+      document.documentElement.style.setProperty("--bg3", palette.bgTertiary);
       document.documentElement.style.setProperty("--tx", palette.text);
       document.documentElement.style.setProperty("--tx2", palette.textSecondary);
+      document.documentElement.style.setProperty("--tx3", palette.textMuted);
       document.documentElement.style.setProperty("--accent", palette.accent);
       document.documentElement.style.setProperty("--accent-soft", palette.accentSoft);
       document.documentElement.style.setProperty("--border", palette.border);
       document.documentElement.style.setProperty("--chart1", palette.chartLine1);
       document.documentElement.style.setProperty("--chart2", palette.chartLine2);
+      document.documentElement.style.setProperty("--shadow", palette.shadow);
     }
     document.documentElement.setAttribute("data-theme", mode === "dark" ? "dark" : "");
     localStorage.setItem("theme-mode", mode);
@@ -196,22 +191,6 @@ const App = (() => {
       return await res.json();
     } catch {
       return null;
-    }
-  }
-
-  async function fetchReleases(repoFullName) {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${repoFullName}/releases`, {
-        headers: { Accept: "application/vnd.github+json" },
-      });
-      if (!res.ok) return [];
-      const releases = await res.json();
-      return releases.map((r) => ({
-        tag: r.tag_name,
-        downloads: (r.assets || []).reduce((sum, a) => sum + a.download_count, 0),
-      }));
-    } catch {
-      return [];
     }
   }
 
@@ -278,7 +257,7 @@ const App = (() => {
     const updatedEl = document.getElementById("header-updated");
     if (updatedEl && latestUpdate) {
       const d = new Date(latestUpdate);
-      updatedEl.textContent = `Updated ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")} UTC`;
+      updatedEl.textContent = `Updated ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} \u00b7 ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")} UTC`;
     }
 
     for (let i = 0; i < config.repos.length; i++) {
@@ -288,36 +267,37 @@ const App = (() => {
       const idx = i;
 
       const forks = data ? data.forks || 0 : 0;
-      const views = data ? data.data.views || [] : [];
-      const clones = data ? data.data.clones || [] : [];
-      const referrers = data ? data.data.referrers || [] : [];
+      const views = data && data.data ? data.data.views || [] : [];
+      const clones = data && data.data ? data.data.clones || [] : [];
+      const referrers = data && data.data ? data.data.referrers || [] : [];
 
-      // Latest totals
-      const latestView = views.length > 0 ? views[views.length - 1] : { count: 0, uniques: 0 };
-      const latestClone = clones.length > 0 ? clones[clones.length - 1] : { count: 0, uniques: 0 };
-
-      // Sum totals across all data points
+      // All-time totals for headline numbers
       const totalViews = views.reduce((s, v) => s + v.count, 0);
       const uniqueViews = views.reduce((s, v) => s + v.uniques, 0);
       const totalClones = clones.reduce((s, v) => s + v.count, 0);
       const uniqueClones = clones.reduce((s, v) => s + v.uniques, 0);
 
-      const ownerInitial = owner.charAt(0).toUpperCase();
+      const ownerEsc = esc(owner);
+      const repoEsc = esc(repo);
+      const ownerInitialEsc = esc(owner.charAt(0).toUpperCase());
+
+      // Show error message if data file failed to load
+      const dataError = !data;
 
       html += `
       <div class="repo-section">
         <div class="repo-header">
           <div class="repo-avatar">
-            <img src="https://avatars.githubusercontent.com/${owner}?s=60" alt="" onerror="this.style.display='none'; this.parentElement.textContent='${ownerInitial}'">
+            <img src="https://avatars.githubusercontent.com/${encodeURIComponent(owner)}?s=60" alt="" onerror="this.style.display='none'; this.parentElement.textContent='${ownerInitialEsc}'">
           </div>
-          <a class="repo-name" href="https://github.com/${repoFullName}" target="_blank" rel="noopener">
-            <span class="owner">${owner} /</span> ${repo}
+          <a class="repo-name" href="https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}" target="_blank" rel="noopener noreferrer">
+            <span class="owner">${ownerEsc} /</span> ${repoEsc}
           </a>
           <span class="fork-badge">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 0-1.5 0v.878H6.75v-.878a2.25 2.25 0 1 0-1.5 0ZM8 13.5a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Zm0-8.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM4.25 5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm7.5 0a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM8 9v2.5"/></svg>
             ${fmt(forks)}
           </span>
-          <button class="csv-btn" data-repo-idx="${idx}" onclick="App.exportCSV(${idx})">
+          <button class="csv-btn" data-repo-idx="${idx}" onclick="App.exportCSV(${idx})"${dataError ? " disabled" : ""}>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12V14H12V12M8 2V10M5 7L8 10L11 7"/></svg>
             CSV
           </button>
@@ -327,7 +307,9 @@ const App = (() => {
           <div class="col-md-4 col-12">
             <div class="card-dash">
               <div class="card-label">Visitors</div>
-              <div class="card-value">${fmt(totalViews)}</div>
+              ${dataError
+                ? '<div class="no-data-msg">Data not yet collected</div>'
+                : `<div class="card-value">${fmt(totalViews)}</div>
               <div class="card-sub"><strong>${fmt(uniqueViews)}</strong> unique</div>
               <div class="chart-wrap"><canvas id="visitors-${idx}"></canvas></div>
               <div class="chart-controls">
@@ -336,14 +318,16 @@ const App = (() => {
                   <div class="chart-legend-item"><div class="legend-line dashed" style="border-color:var(--chart2)"></div>Unique</div>
                 </div>
                 <button class="chart-reset" onclick="App.resetZoom('visitors-${idx}')">Reset zoom</button>
-              </div>
+              </div>`}
             </div>
           </div>
           <!-- Clones -->
           <div class="col-md-4 col-12">
             <div class="card-dash">
               <div class="card-label">Clones</div>
-              <div class="card-value">${fmt(totalClones)}</div>
+              ${dataError
+                ? '<div class="no-data-msg">Data not yet collected</div>'
+                : `<div class="card-value">${fmt(totalClones)}</div>
               <div class="card-sub"><strong>${fmt(uniqueClones)}</strong> unique</div>
               <div class="chart-wrap"><canvas id="clones-${idx}"></canvas></div>
               <div class="chart-controls">
@@ -352,7 +336,7 @@ const App = (() => {
                   <div class="chart-legend-item"><div class="legend-line dashed" style="border-color:var(--chart2)"></div>Unique</div>
                 </div>
                 <button class="chart-reset" onclick="App.resetZoom('clones-${idx}')">Reset zoom</button>
-              </div>
+              </div>`}
             </div>
           </div>
           <!-- Referrers / Releases -->
@@ -363,10 +347,10 @@ const App = (() => {
                 <div class="tab" onclick="App.switchTab('card3-${idx}','rel')">Releases</div>
               </div>
               <div class="tab-content ref">
-                ${renderReferrersTable(referrers)}
+                ${dataError ? '<div class="no-data-msg">Data not yet collected</div>' : renderReferrersTable(referrers)}
               </div>
               <div class="tab-content rel" style="display:none" id="releases-${idx}">
-                <div class="no-data-msg">Loading releases…</div>
+                <div class="no-data-msg">Loading releases\u2026</div>
               </div>
             </div>
           </div>
@@ -376,31 +360,32 @@ const App = (() => {
 
     main.innerHTML = html;
 
-    // Create charts
+    // Create charts (skip for repos with no data)
     for (let i = 0; i < config.repos.length; i++) {
       const data = dataFiles[i];
-      const views = data ? data.data.views || [] : [];
-      const clones = data ? data.data.clones || [] : [];
+      if (!data || !data.data) continue;
+      const views = data.data.views || [];
+      const clones = data.data.clones || [];
 
       createChart(`visitors-${i}`, views);
       createChart(`clones-${i}`, clones);
     }
 
-    // Fetch releases client-side
+    // Render releases from data files (fetched by cron, not client-side)
     for (let i = 0; i < config.repos.length; i++) {
-      fetchReleases(config.repos[i]).then((releases) => {
-        const container = document.getElementById(`releases-${i}`);
-        if (!container) return;
-        if (releases.length === 0) {
-          container.innerHTML = '<div class="no-data-msg">No releases</div>';
-        } else {
-          let rows = "";
-          for (const r of releases) {
-            rows += `<tr><td>${r.tag}</td><td>${fmt(r.downloads)}</td></tr>`;
-          }
-          container.innerHTML = `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Release</th><th>Downloads</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      const data = dataFiles[i];
+      const container = document.getElementById(`releases-${i}`);
+      if (!container) continue;
+      const releases = data && data.data && data.data.releases ? data.data.releases : [];
+      if (releases.length === 0) {
+        container.innerHTML = '<div class="no-data-msg">No releases</div>';
+      } else {
+        let rows = "";
+        for (const r of releases) {
+          rows += `<tr><td>${esc(r.tag)}</td><td>${fmt(r.downloads)}</td></tr>`;
         }
-      });
+        container.innerHTML = `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Release</th><th>Downloads</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      }
     }
   }
 
@@ -410,7 +395,7 @@ const App = (() => {
     }
     let rows = "";
     for (const r of referrers) {
-      rows += `<tr><td>${r.referrer}</td><td>${fmt(r.count)}</td></tr>`;
+      rows += `<tr><td>${esc(r.referrer)}</td><td>${fmt(r.count)}</td></tr>`;
     }
     return `<div class="ref-scroll-container"><table class="ref-table"><thead><tr><th>Site</th><th>Visits</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
@@ -447,6 +432,10 @@ const App = (() => {
         mode: "x",
       };
     }
+
+    // Read font families from theme CSS vars for tooltip consistency
+    const tooltipHeadingFont = getCSS("--font-h") || "'DM Sans', system-ui, sans-serif";
+    const tooltipMonoFont = getCSS("--font-m") || "'JetBrains Mono', monospace";
 
     const chart = new Chart(canvas.getContext("2d"), {
       type: "line",
@@ -488,8 +477,8 @@ const App = (() => {
           legend: { display: false },
           tooltip: {
             backgroundColor: "rgba(0,0,0,0.8)",
-            titleFont: { family: "'DM Sans'", size: 12, weight: "500" },
-            bodyFont: { family: "'JetBrains Mono'", size: 11 },
+            titleFont: { family: tooltipHeadingFont, size: 12, weight: "500" },
+            bodyFont: { family: tooltipMonoFont, size: 11 },
             padding: 10,
             cornerRadius: 6,
             displayColors: true,
@@ -507,7 +496,7 @@ const App = (() => {
           x: {
             ticks: {
               color: getCSS("--tx3"),
-              font: { family: "'JetBrains Mono'", size: 9 },
+              font: { family: tooltipMonoFont, size: 9 },
               maxRotation: 0,
               maxTicksLimit: 6,
             },
@@ -518,7 +507,7 @@ const App = (() => {
           y: {
             ticks: {
               color: getCSS("--tx3"),
-              font: { family: "'JetBrains Mono'", size: 9 },
+              font: { family: tooltipMonoFont, size: 9 },
               maxTicksLimit: 4,
             },
             grid: { color: getCSS("--border"), lineWidth: 0.5 },
@@ -601,11 +590,12 @@ const App = (() => {
       dateMap.set(c.date, existing);
     }
 
+    // Use ISO dates (YYYY-MM-DD) in CSV for machine-readability
     const sortedDates = [...dateMap.keys()].sort();
     let csv = "date,views,unique_views,clones,unique_clones\n";
     for (const date of sortedDates) {
       const d = dateMap.get(date);
-      csv += `${dateLabelCSV(date)},${d.views},${d.unique_views},${d.clones},${d.unique_clones}\n`;
+      csv += `${date},${d.views},${d.unique_views},${d.clones},${d.unique_clones}\n`;
     }
 
     // Add referrers section
@@ -621,7 +611,8 @@ const App = (() => {
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     link.click();
-    URL.revokeObjectURL(link.href);
+    // Delay revoke to allow the download to start in all browsers
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }
 
   // ── Init ─────────────────────────────────────────────────────────────────
