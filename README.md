@@ -13,6 +13,10 @@ A self-hosted, static-site dashboard that aggregates GitHub traffic statistics (
 
 <br> 
 
+### Use password "guest" to view the live demo at [https://hijelhub.github.io/Demo_Dashboard/](https://hijelhub.github.io/Demo_Dashboard/)
+
+<br>
+
 ## Why?
 
 - GitHub's built-in traffic data **expires after 14 days**
